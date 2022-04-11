@@ -8,8 +8,10 @@
 import UIKit
 
 class ViewController: UIViewController {
+    @IBOutlet var editButton: UIBarButtonItem!
     @IBOutlet weak var tableView: UITableView!
     
+    var doneButton : UIBarButtonItem?
     var tasks = [Task](){
         didSet {
             self.saveTasks() //추가될때마다 userDefualts에 저장됨.
@@ -18,13 +20,23 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTap))
         self.tableView.dataSource = self
         self.tableView.delegate = self
         self.loadTasks() //저장된 데이터들 불러오기.
         
     }
+    
+    //doneButton이 선택되었을때 호출되는 메소드 정의
+    @objc func doneButtonTap() {   //selector타입으로 메소드를 가져올경우 @objc를 붙여줘야함.
+        self.navigationItem.leftBarButtonItem = self.editButton
+        self.tableView.setEditing(false, animated: true) //doneButton클릭시 편집기능에서 빠져나오도록.
+    }
 
-    @IBAction func tapEditButton(_ sender: UIBarButtonItem) {
+    @IBAction func tapEditButton(_ sender: UIBarButtonItem) { //edit버튼 클릭 시 목록들이 편집모드로 바뀌도록.
+        guard !self.tasks.isEmpty else { return } //할 일 목록이 비어있지 않다면,
+        self.navigationItem.leftBarButtonItem = self.doneButton //doneButton으로 변경
+        self.tableView.setEditing(true, animated: true ) //편집기능을 true로.
     }
     
     @IBAction func tapAddButton(_ sender: UIBarButtonItem) {
@@ -66,6 +78,7 @@ class ViewController: UIViewController {
         }
     }
     
+    
 }
 
 extension ViewController : UITableViewDataSource {
@@ -82,6 +95,25 @@ extension ViewController : UITableViewDataSource {
             cell.accessoryType = .none
         }
         return cell
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) { //편집모드에서 선택된 셀이 어떤것인지 알려주는 메소드.
+        self.tasks.remove(at: indexPath.row) //할일 삭제
+        tableView.deleteRows(at: [indexPath], with: .automatic) //tableView에서의 줄도 삭제.
+        
+        if self.tasks.isEmpty {
+            self.doneButtonTap() //비어있으면 편집모드에서 자동으로 빠져나오기.
+        }
+    }
+    //셀 재정렬
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        var tasks = self.tasks
+        let task = tasks[sourceIndexPath.row] //배열의 요소에 접근
+        tasks.remove(at: sourceIndexPath.row) //원래 위치에 있던 할 일을 삭제
+        tasks.insert(task, at: destinationIndexPath.row) //task에서 정의한 할일을 넘겨주고 이동한 위치를 넘겨줌
+        self.tasks = tasks //tasks배열에 재정렬한 tasks를 대입시켜줌.
     }
 }
 

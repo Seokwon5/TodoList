@@ -78,6 +78,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="editButton" destination="t3m-DJ-eDJ" id="THY-Bl-Amo"/>
                         <outlet property="tableView" destination="YoG-X2-Fj8" id="VTn-xc-Z0f"/>
                     </connections>
                 </viewController>
